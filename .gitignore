@@ -130,3 +130,5 @@ dmypy.json
 
 # Mac Finder files
 *.DS_STORE
+
+/bmp_images
