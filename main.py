@@ -55,7 +55,8 @@ def loopTroughFunction(filePath, fileName, pathOutput):
 
         reducedIm = imf.reduceQualityOfImage(greyIm, i*PRECENT_TO_REDUCE)
         
-        newName = nm.getProcessedFileName(fileName, qualityPercent)
+        colorDepth = pathOutput[-5]+pathOutput[-4]+pathOutput[-3]+pathOutput[-2]
+        newName = nm.getProcessedFileName(fileName, qualityPercent, colorDepth)
         #print('loopTroughFunction -> NEW Filename: '+ newName)
 
         imf.saveImageAsBMP(reducedIm, newName, newPathOutput)
