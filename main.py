@@ -21,9 +21,13 @@ AMMOUNT_OF_STEPS = 9
 
 #-------------------------------------------------------------------------
 
+# Make bitmaps from the bin files and store them in the input folder:
+os.system('./Bitmapizer -bitmapize')
 
+
+# Define input and output directories and create subfolders for each colour depth:
 PATH_INPUT = ff.getAbsPath("bmp_images/input_folder/")
-PATH_OUTPUT = ff.getAbsPath("bmp_images/output_folder/")
+PATH_OUTPUT = ff.getAbsPath('../AMOCR-web/web-app/src/presentation-layer/public/meter-images/')
 
 ff.makeDirectory(PATH_INPUT)
 ff.makeDirectory(PATH_OUTPUT)
@@ -63,3 +67,7 @@ def loopTroughFunction(filePath, fileName, pathOutput):
 
 outputPath8Bit = PATH_OUTPUT+'8bit/'
 ff.loopTroughDirectory(PATH_INPUT, outputPath8Bit, loopTroughFunction)
+
+os.system('./Bitmapizer -convert')
+
+print('All done!')
