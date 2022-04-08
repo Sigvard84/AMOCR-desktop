@@ -1,10 +1,9 @@
 import os
 
+def getProcessedFileName(orgName, qualityPercent, colorDepth):
 
-def getProcessedFileName(ogName, qualityPercent, colorDepth):
+    orgNameSplit = os.path.splitext(orgName)
 
-    ogNameSplited = os.path.splitext(ogName)
-
-    newName = ogNameSplited[0]+'_'+colorDepth+'_'+str(qualityPercent)+'ppt'
+    newName = orgNameSplit[0]+'_'+colorDepth+'_'+str(qualityPercent)+'ppt'
 
     return newName

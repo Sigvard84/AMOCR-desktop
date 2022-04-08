@@ -9,12 +9,12 @@ import NameMaker as nm
 #-------------------------------------------------------------------------
 
 # The square that the program will cut out and use
-# The first two number represent upper left corner of the square
-# The last two number represent lower right corner of the square
+# The first two numbers represent upper left corner of the square
+# The last two numbers represent lower right corner of the square
 SQUARE = (130, 300, 270, 370)
 
 # The ammount of pixels that are reduced for each step
-PRECENT_TO_REDUCE = 10
+PERCENT_TO_REDUCE = 10
 
 # The ammount steps with reduction that are taken
 AMMOUNT_OF_STEPS = 9
@@ -41,7 +41,7 @@ def loopTroughFunction(filePath, fileName, pathOutput):
         #print('loopTroughFunction -> Filename: '+ filePath)
 
         # the quality of the picture in pixels, 100 is orgininal quality
-        qualityPercent = 100 - (i * PRECENT_TO_REDUCE)
+        qualityPercent = 100 - (i * PERCENT_TO_REDUCE)
 
         newPathOutput = pathOutput+str(qualityPercent)+'ppt/'
 
@@ -49,11 +49,11 @@ def loopTroughFunction(filePath, fileName, pathOutput):
 
         im = Image.open(filePath+fileName)
 
-        cropedIm = imf.cropImage(im, SQUARE)
+        croppedIm = imf.cropImage(im, SQUARE)
 
-        greyIm = imf.makeGrayscale(cropedIm)
+        greyIm = imf.makeGrayscale(croppedIm)
 
-        reducedIm = imf.reduceQualityOfImage(greyIm, i*PRECENT_TO_REDUCE)
+        reducedIm = imf.reduceQualityOfImage(greyIm, i*PERCENT_TO_REDUCE)
         
         colorDepth = pathOutput[-5]+pathOutput[-4]+pathOutput[-3]+pathOutput[-2]
         newName = nm.getProcessedFileName(fileName, qualityPercent, colorDepth)
