@@ -2,6 +2,9 @@ from os import path
 import os
 import sys
 from pathlib import Path
+import shutil
+from tkinter import N
+from zipfile import ZipFile
 
 def getAbsPath(relative_path):
     """ Returns the absolute path to resource, works for dev and for PyInstaller """
@@ -15,7 +18,28 @@ def makeDirectory(path):
 
 def loopTroughDirectory(pathInput, pathOutput, loopFunction):
     for filename in os.listdir(pathInput):
+
+        if os.path.isdir(pathInput+filename):
+            #print("loopTroughDirectory -> Found dir: "+filename)
+            loopTroughDirectory(pathInput+filename+"/", pathOutput, loopFunction)
         
-        if filename.endswith(".bmp"):
+        elif filename.endswith(".bmp"):
             print('loopTroughDirectory ->On file: ' + filename)
             loopFunction(pathInput, filename, pathOutput)
+            
+
+def getFileSize(path, fileName):
+    return os.path.getsize(path+fileName)
+
+def zip(path, fileName):
+    shutil.make_archive(fileName, "zip", path)
+
+def removeFile(path, fileName):
+    if os.path.exists(path+fileName):
+        os.remove(path+fileName)
+
+def removeDirectory(path):
+    os.rmdir(path)
+
+def renameFile(path, orgFilename, newFilename):
+    os.rename(path+orgFilename, path+newFilename) 
