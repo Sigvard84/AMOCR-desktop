@@ -98,7 +98,7 @@ def loopTroughOutputDir(filePath, fileName, _):
         db.bmpSizes = imf.getFormatSizes(None, fileName, im)
         im.close()
 
-    if len(db.binSizes) != 0 and len(db.bmpSizes):
+    if len(db.binSizes) and len(db.bmpSizes):
 
         fileSizes = db.binSizes | db.bmpSizes
 
