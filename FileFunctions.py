@@ -23,7 +23,7 @@ def loopTroughDirectory(pathInput, pathOutput, loopFunction):
             #print("loopTroughDirectory -> Found dir: "+filename)
             loopTroughDirectory(pathInput+filename+"/", pathOutput, loopFunction)
         
-        elif filename.endswith(".bmp"):
+        elif filename.endswith(".bmp") or filename.endswith(".bin"):
             print('loopTroughDirectory ->On file: ' + filename)
             loopFunction(pathInput, filename, pathOutput)
             
@@ -42,4 +42,7 @@ def removeDirectory(path):
     os.rmdir(path)
 
 def renameFile(path, orgFilename, newFilename):
-    os.rename(path+orgFilename, path+newFilename) 
+    os.rename(path+orgFilename, path+newFilename)
+
+def copyFile(orgPath, fileName, newPath, newFilename):
+    shutil.copy2(orgPath+fileName, newPath+newFilename)

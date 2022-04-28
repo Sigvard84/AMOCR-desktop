@@ -1,0 +1,2 @@
+binSizes = {}
+bmpSizes = {}

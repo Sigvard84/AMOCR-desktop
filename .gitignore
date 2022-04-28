@@ -132,3 +132,8 @@ dmypy.json
 *.DS_STORE
 
 /bmp_images
+
+/8bit
+/4bit
+/2bit
+/1bit

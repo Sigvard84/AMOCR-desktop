@@ -47,33 +47,44 @@ def reduceQualityOfImage(im, reducePercentage):
         return im
 
 
-def getFormatSizes(fileName, im):
-    path = ff.getAbsPath("")
+def getFormatSizes(binPath, fileName, im):
+    tempPath = ff.getAbsPath("")
 
-    pureFileName = fileName.replace(".bmp", "")
-    filePath = path + pureFileName
+    if binPath != None:
+        isBin = True
+        pureFileName = fileName.replace(".bin", "")
+    elif im != None:
+        isBin = False
+        pureFileName = fileName.replace(".bmp", "")
 
-
-    saveImageAsPNG(im, pureFileName, path)
-    saveImageAsGIF(im, pureFileName, path)
-
-    zipPath = path + "zip/"
-    ff.makeDirectory(zipPath)
-    zipName = "0"
-    
-    saveImageAsBMP(im, zipName, zipPath)
-
-    ff.zip(zipPath, "0")
+    filePath = tempPath + pureFileName
 
     fileSizes = {}
-    fileSizes['pngSize'] = ff.getFileSize(filePath, ".png")
-    fileSizes['gifSize'] = ff.getFileSize(filePath, ".gif")
-    fileSizes['zipSize'] = ff.getFileSize(path, zipName+".zip")
+    
+    if isBin:
+        fileSizes['binSize'] = ff.getFileSize(binPath, fileName)
 
-    ff.removeFile(filePath, ".png")
-    ff.removeFile(filePath, ".gif")
-    ff.removeFile(zipPath, zipName+".bmp")
-    ff.removeFile(path, zipName+".zip")
-    ff.removeDirectory(ff.getAbsPath("")+"/zip")
+        zipPath = tempPath + "zip/"
+        ff.makeDirectory(zipPath)
+
+        zipPureName = "0"
+
+        ff.copyFile(binPath, fileName, zipPath, zipPureName+".bin")
+        ff.zip(zipPath, zipPureName)
+
+        fileSizes['zipSize'] = ff.getFileSize(tempPath, zipPureName+".zip")
+        
+        ff.removeFile(zipPath, zipPureName+".bin")
+        ff.removeDirectory(ff.getAbsPath("")+"zip")
+        ff.removeFile(tempPath, zipPureName+".zip")
+
+    else:
+        saveImageAsPNG(im, pureFileName, tempPath)
+        saveImageAsGIF(im, pureFileName, tempPath)
+        fileSizes['pngSize'] = ff.getFileSize(filePath, ".png")
+        fileSizes['gifSize'] = ff.getFileSize(filePath, ".gif")
+
+        ff.removeFile(filePath, ".png")
+        ff.removeFile(filePath, ".gif")
 
     return fileSizes

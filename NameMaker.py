@@ -1,14 +1,11 @@
 import os
 
-def getProcessedFileName(orgName, qualityPercent, colorDepth, fileSizes):
+def getProcessedFileName(orgName, qualityPercent, colorDepth):
 
     orgNameSplit = os.path.splitext(orgName)
 
-    pngSize = str(fileSizes["pngSize"])
-    gifSize = str(fileSizes["gifSize"])
-    zipSize = str(fileSizes["zipSize"])
 
-    newName = orgNameSplit[0]+'_'+colorDepth+'_'+str(qualityPercent)+'ppt'+'_'+pngSize+'_'+gifSize+'_'+zipSize
+    newName = orgNameSplit[0]+'_'+colorDepth+'_'+str(qualityPercent)+'ppt'
 
     return newName
 
@@ -19,6 +16,7 @@ def addFileSize(filename, fileSizes):
     pngSize = str(fileSizes["pngSize"])
     gifSize = str(fileSizes["gifSize"])
     zipSize = str(fileSizes["zipSize"])
+    binSize = str(fileSizes["binSize"])
 
-    return filename+'_'+pngSize+'_'+gifSize+'_'+zipSize+".bmp"
+    return filename+'_'+pngSize+'_'+gifSize+'_'+zipSize+'_'+binSize+".bmp"
 

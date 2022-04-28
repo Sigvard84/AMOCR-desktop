@@ -4,6 +4,7 @@ import os, sys, io
 import ImgFunctions as imf
 import FileFunctions as ff
 import NameMaker as nm
+import db
 
 #                       Settings for the program
 #-------------------------------------------------------------------------
@@ -17,7 +18,7 @@ SQUARE = (349, 271, 539, 302)
 PERCENT_TO_REDUCE = 5
 
 # The ammount steps with reduction that are taken
-AMMOUNT_OF_STEPS = 2
+AMMOUNT_OF_STEPS = 1
 
 #-------------------------------------------------------------------------
 
@@ -62,14 +63,15 @@ def loopTroughInputDir(filePath, fileName, pathOutput):
         croppedIm = imf.cropImage(im, SQUARE)
         greyIm = imf.makeGrayscale(croppedIm)
         reducedIm = imf.reduceQualityOfImage(greyIm, i*PERCENT_TO_REDUCE)
-        
-        fileSizes = imf.getFormatSizes(fileName, reducedIm)
 
         colorDepth = pathOutput[-5]+pathOutput[-4]+pathOutput[-3]+pathOutput[-2]
-        newName = nm.getProcessedFileName(fileName, qualityPercent, colorDepth, fileSizes)
-        #print('loopTroughFunction -> NEW Filename: '+ newName)
+        newName = nm.getProcessedFileName(fileName, qualityPercent, colorDepth)
 
-        imf.saveImageAsBMP(reducedIm, newName, newPathOutput)
+        actualFilePath = newPathOutput+newName+"/"
+
+        ff.makeDirectory(actualFilePath)
+
+        imf.saveImageAsBMP(reducedIm, newName, actualFilePath)
 
 ff.loopTroughDirectory(PATH_INPUT, PATH_8BIT, loopTroughInputDir)
 
@@ -77,15 +79,36 @@ ff.loopTroughDirectory(PATH_INPUT, PATH_8BIT, loopTroughInputDir)
 
 def loopTroughOutputDir(filePath, fileName, _):
 
-    im = Image.open(filePath+fileName)
-    fileSizes = imf.getFormatSizes(fileName, im)
-    im.close()
+    if fileName.endswith(".bin"):
+        isBin = True
 
-    pureFileName = fileName.replace(".bmp", "")
-    newName = nm.addFileSize(pureFileName, fileSizes)   
+        pureFileName = fileName.replace(".bin", "")
+        binPath = filePath
 
-    ff.renameFile(filePath, fileName, newName)
+    elif fileName.endswith(".bmp"):
+        isBin = False
 
+        pureFileName = fileName.replace(".bmp", "")
+        im = Image.open(filePath+fileName)
+
+
+    if isBin:
+        db.binSizes = imf.getFormatSizes(binPath, fileName, None)
+    else:
+        db.bmpSizes = imf.getFormatSizes(None, fileName, im)
+        im.close()
+
+    if len(db.binSizes) != 0 and len(db.bmpSizes):
+
+        fileSizes = db.binSizes | db.bmpSizes
+
+        newName = nm.addFileSize(pureFileName, fileSizes)
+        ff.renameFile(filePath, pureFileName+".bmp", newName)
+
+        db.binSizes = {}
+        db.bmpSizes = {}
+
+ff.loopTroughDirectory(PATH_8BIT, PATH_8BIT, loopTroughOutputDir)
 ff.loopTroughDirectory(PATH_4BIT, PATH_4BIT, loopTroughOutputDir)
 ff.loopTroughDirectory(PATH_2BIT, PATH_2BIT, loopTroughOutputDir)
 ff.loopTroughDirectory(PATH_1BIT, PATH_1BIT, loopTroughOutputDir)
