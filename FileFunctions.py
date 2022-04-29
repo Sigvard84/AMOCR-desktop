@@ -24,7 +24,7 @@ def loopTroughDirectory(pathInput, pathOutput, loopFunction):
             loopTroughDirectory(pathInput+filename+"/", pathOutput, loopFunction)
         
         elif filename.endswith(".bmp") or filename.endswith(".bin"):
-            print('loopTroughDirectory ->On file: ' + filename)
+            print('\nloopTroughDirectory -> On file: ' + filename)
             loopFunction(pathInput, filename, pathOutput)
             
 

@@ -1,6 +1,8 @@
 from PIL import Image
 import math
 import FileFunctions as ff
+import subprocess as sub
+import db
 
 def makeGrayscale(im):
     
@@ -47,44 +49,54 @@ def reduceQualityOfImage(im, reducePercentage):
         return im
 
 
-def getFormatSizes(binPath, fileName, im):
+def getFormatSizes(path, fileName, isBin):
     tempPath = ff.getAbsPath("")
 
-    if binPath != None:
-        isBin = True
+    if isBin:
         pureFileName = fileName.replace(".bin", "")
-    elif im != None:
-        isBin = False
+    else:
         pureFileName = fileName.replace(".bmp", "")
 
-    filePath = tempPath + pureFileName
-
-    fileSizes = {}
-    
     if isBin:
-        fileSizes['binSize'] = ff.getFileSize(binPath, fileName)
-
         zipPath = tempPath + "zip/"
-        ff.makeDirectory(zipPath)
-
         zipPureName = "0"
 
-        ff.copyFile(binPath, fileName, zipPath, zipPureName+".bin")
+        ff.makeDirectory(zipPath)
+        ff.copyFile(path, fileName, zipPath, zipPureName+".bin")
         ff.zip(zipPath, zipPureName)
 
-        fileSizes['zipSize'] = ff.getFileSize(tempPath, zipPureName+".zip")
+        db.binSizes['binSize'] = ff.getFileSize(path, fileName)
+        db.binSizes['zipSize'] = ff.getFileSize(tempPath, zipPureName+".zip")
         
         ff.removeFile(zipPath, zipPureName+".bin")
-        ff.removeDirectory(ff.getAbsPath("")+"zip")
         ff.removeFile(tempPath, zipPureName+".zip")
+        ff.removeDirectory(ff.getAbsPath("")+"zip")
 
     else:
-        saveImageAsPNG(im, pureFileName, tempPath)
-        saveImageAsGIF(im, pureFileName, tempPath)
-        fileSizes['pngSize'] = ff.getFileSize(filePath, ".png")
-        fileSizes['gifSize'] = ff.getFileSize(filePath, ".gif")
 
-        ff.removeFile(filePath, ".png")
-        ff.removeFile(filePath, ".gif")
+        index = fileName.find("bit_")
+        depth = fileName[index-1]
 
-    return fileSizes
+        match depth:
+            case "2":
+                path4Bit = path.replace("2bit", "4bit")
+                fileName = fileName.replace("2bit", "4bit")
+
+                command = ["magick", path4Bit+fileName, "-depth", depth, path+pureFileName+".png"]
+                sub.call(command, shell = True)
+                
+                db.bmpSizes['pngSize'] = ff.getFileSize(path, pureFileName+".png")
+
+            case"1":
+                path4Bit = path.replace("1bit", "4bit")
+                fileName = fileName.replace("1bit", "4bit")
+                command = ["magick", path4Bit+fileName, "-depth", depth, path+pureFileName+".png"]
+                sub.call(command, shell = True)
+                
+                db.bmpSizes['pngSize'] = ff.getFileSize(path, pureFileName+".png")
+
+            case _:
+                command = ["magick", path+fileName, "-depth", depth, path+pureFileName+".png"]
+                sub.call(command, shell = True)
+
+                db.bmpSizes['pngSize'] = ff.getFileSize(path, pureFileName+".png")

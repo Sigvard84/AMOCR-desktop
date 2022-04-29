@@ -77,33 +77,52 @@ ff.loopTroughDirectory(PATH_INPUT, PATH_8BIT, loopTroughInputDir)
 
 #os.system('./Bitmapizer -convert')
 
-def loopTroughOutputDir(filePath, fileName, _):
+def loopTroughOutputDir(path, fileName, _):
+    
+    path = path.replace("/", "\\")
 
     if fileName.endswith(".bin"):
         isBin = True
-
         pureFileName = fileName.replace(".bin", "")
-        binPath = filePath
+
+        imf.getFormatSizes(path, fileName, isBin)
 
     elif fileName.endswith(".bmp"):
         isBin = False
-
         pureFileName = fileName.replace(".bmp", "")
-        im = Image.open(filePath+fileName)
-
-
-    if isBin:
-        db.binSizes = imf.getFormatSizes(binPath, fileName, None)
-    else:
-        db.bmpSizes = imf.getFormatSizes(None, fileName, im)
-        im.close()
+        
+        imf.getFormatSizes(path, fileName, isBin)
 
     if len(db.binSizes) and len(db.bmpSizes):
 
         fileSizes = db.binSizes | db.bmpSizes
+        # print(f'fileSizes -> {fileSizes}')
+
+        index = fileName.find("bit_")
+        depth = fileName[index-1]
 
         newName = nm.addFileSize(pureFileName, fileSizes)
-        ff.renameFile(filePath, pureFileName+".bmp", newName)
+        newName += ".png"
+
+        # print(f'New name -> {newName}')
+
+        if depth != "4":
+            if depth == "1":
+                imageName = fileName.split("_", 1)[0]
+                ff.renameFile(db.pathBit4[imageName], db.oldBit4Name[imageName]+".png", db.newBit4Name[imageName])
+                ff.removeFile(db.pathBit4[imageName], db.oldBit4Name[imageName]+".bmp")
+                ff.removeFile(db.pathBit4[imageName], db.oldBit4Name[imageName]+".bin")
+
+
+            ff.renameFile(path, pureFileName+".png", newName)
+            ff.removeFile(path, pureFileName+".bmp")
+            ff.removeFile(path, pureFileName+".bin")
+        else:
+            imageName = fileName.split("_", 1)[0]
+            db.pathBit4[imageName] = path
+            db.oldBit4Name[imageName] = pureFileName
+            db.newBit4Name[imageName] = newName
+
 
         db.binSizes = {}
         db.bmpSizes = {}
