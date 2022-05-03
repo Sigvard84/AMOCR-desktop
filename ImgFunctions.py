@@ -3,6 +3,7 @@ import math
 import FileFunctions as ff
 import subprocess as sub
 import db
+import os
 
 def makeGrayscale(im):
     
@@ -76,27 +77,33 @@ def getFormatSizes(path, fileName, isBin):
 
         index = fileName.find("bit_")
         depth = fileName[index-1]
+        
+        if depth == "2":
+            path4Bit = path.replace("2bit", "4bit")
+            fileName = fileName.replace("2bit", "4bit")
 
-        match depth:
-            case "2":
-                path4Bit = path.replace("2bit", "4bit")
-                fileName = fileName.replace("2bit", "4bit")
+            # command = ["magick", path4Bit+fileName, "-depth", depth, path+pureFileName+".png"]
+            # sub.call(command, shell = True)
 
-                command = ["magick", path4Bit+fileName, "-depth", depth, path+pureFileName+".png"]
-                sub.call(command, shell = True)
-                
-                db.bmpSizes['pngSize'] = ff.getFileSize(path, pureFileName+".png")
+            os.system(f'convert {path4Bit+fileName} -depth {depth} {path+pureFileName}.png')
+            
+            db.bmpSizes['pngSize'] = ff.getFileSize(path, pureFileName+".png")
 
-            case"1":
-                path4Bit = path.replace("1bit", "4bit")
-                fileName = fileName.replace("1bit", "4bit")
-                command = ["magick", path4Bit+fileName, "-depth", depth, path+pureFileName+".png"]
-                sub.call(command, shell = True)
-                
-                db.bmpSizes['pngSize'] = ff.getFileSize(path, pureFileName+".png")
+        elif depth == "1":
+            path4Bit = path.replace("1bit", "4bit")
+            fileName = fileName.replace("1bit", "4bit")
+            
+            # command = ["magick", path4Bit+fileName, "-depth", depth, path+pureFileName+".png"]
+            # sub.call(command, shell = True)
 
-            case _:
-                command = ["magick", path+fileName, "-depth", depth, path+pureFileName+".png"]
-                sub.call(command, shell = True)
+            os.system(f'convert {path4Bit+fileName} -depth {depth} {path+pureFileName}.png')
+            
+            db.bmpSizes['pngSize'] = ff.getFileSize(path, pureFileName+".png")
 
-                db.bmpSizes['pngSize'] = ff.getFileSize(path, pureFileName+".png")
+        else:
+            # command = ["magick", path+fileName, "-depth", depth, path+pureFileName+".png"]
+            # sub.call(command, shell = True)
+
+            os.system(f'convert {path+fileName} -depth {depth} {path+pureFileName}.png')
+
+            db.bmpSizes['pngSize'] = ff.getFileSize(path, pureFileName+".png")

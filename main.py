@@ -4,6 +4,7 @@ import os, sys, io
 import ImgFunctions as imf
 import FileFunctions as ff
 import NameMaker as nm
+import TesseractMachine as tm
 import db
 
 #                       Settings for the program
@@ -28,8 +29,8 @@ AMMOUNT_OF_STEPS = 1
 
 # Define input and output directories and create subfolders for each colour depth:
 PATH_INPUT = ff.getAbsPath("bmp_images/input_folder/")
-#PATH_OUTPUT = ff.getAbsPath('../AMOCR-web/web-app/src/presentation-layer/public/meter-images/')
-PATH_OUTPUT = ff.getAbsPath('')
+PATH_OUTPUT = ff.getAbsPath('../AMOCR-web/web-app/src/presentation-layer/public/meter-images/')
+#PATH_OUTPUT = ff.getAbsPath('')
 
 ff.makeDirectory(PATH_INPUT)
 ff.makeDirectory(PATH_OUTPUT)
@@ -75,11 +76,11 @@ def loopTroughInputDir(filePath, fileName, pathOutput):
 
 ff.loopTroughDirectory(PATH_INPUT, PATH_8BIT, loopTroughInputDir)
 
-#os.system('./Bitmapizer -convert')
+os.system('./Bitmapizer -convert')
 
 def loopTroughOutputDir(path, fileName, _):
     
-    path = path.replace("/", "\\")
+    #path = path.replace("/", "\\")
 
     if fileName.endswith(".bin"):
         isBin = True
@@ -127,10 +128,30 @@ def loopTroughOutputDir(path, fileName, _):
         db.binSizes = {}
         db.bmpSizes = {}
 
+
+def getOcrValues(path, filename, _):
+
+    if filename.endswith('.png'):
+        ocrValue = tm.getImageOCR(path+filename)
+
+        splitFileName = filename.split('_', 2)
+        imageName, facit, tail = splitFileName[0], splitFileName[1], splitFileName[2]
+        newFilename = imageName + facit + ocrValue + tail
+
+        ff.renameFile(path, filename, newFilename)
+
+
 ff.loopTroughDirectory(PATH_8BIT, PATH_8BIT, loopTroughOutputDir)
 ff.loopTroughDirectory(PATH_4BIT, PATH_4BIT, loopTroughOutputDir)
 ff.loopTroughDirectory(PATH_2BIT, PATH_2BIT, loopTroughOutputDir)
 ff.loopTroughDirectory(PATH_1BIT, PATH_1BIT, loopTroughOutputDir)
 
+print('\nAll files renamed with filesizes.')
 
-print('\nAll done!')
+ff.loopTroughDirectory(PATH_8BIT, PATH_8BIT, getOcrValues)
+ff.loopTroughDirectory(PATH_4BIT, PATH_4BIT, getOcrValues)
+ff.loopTroughDirectory(PATH_2BIT, PATH_2BIT, getOcrValues)
+ff.loopTroughDirectory(PATH_1BIT, PATH_1BIT, getOcrValues)
+
+
+print('\nAll files run through Tesseract and renamed.\nAll done!')
