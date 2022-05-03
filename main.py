@@ -13,7 +13,7 @@ import db
 # The square that the program will cut out and use
 # The first two numbers represent upper left corner of the square
 # The last two numbers represent lower right corner of the square
-SQUARE = (349, 273, 539, 302)
+SQUARE = (349, 271, 539, 302)
 
 # The ammount of pixels that are reduced for each step
 PERCENT_TO_REDUCE = 5
