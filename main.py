@@ -13,7 +13,7 @@ import db
 # The square that the program will cut out and use
 # The first two numbers represent upper left corner of the square
 # The last two numbers represent lower right corner of the square
-SQUARE = (349, 271, 539, 302)
+SQUARE = (349, 273, 539, 302)
 
 # The ammount of pixels that are reduced for each step
 PERCENT_TO_REDUCE = 5
@@ -132,12 +132,12 @@ def loopTroughOutputDir(path, fileName, _):
 def getOcrValues(path, filename, _):
 
     if filename.endswith('.png'):
-        ocrValue = tm.getImageOCR(path+filename)
+        file = ff.getAbsPath(path+filename)
+        ocrValue = tm.getImageOCR(file)
 
         splitFileName = filename.split('_', 2)
         imageName, facit, tail = splitFileName[0], splitFileName[1], splitFileName[2]
-        newFilename = imageName + facit + ocrValue + tail
-
+        newFilename = imageName + '_' + facit + '_' + ocrValue + '_' + tail
         ff.renameFile(path, filename, newFilename)
 
 

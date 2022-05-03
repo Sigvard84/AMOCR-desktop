@@ -1,11 +1,16 @@
-from tesserocr import PyTessBaseAPI, RIL
+from tesserocr import PyTessBaseAPI
+from PIL import Image
 
 def getImageOCR(image):
 
-    with PyTessBaseAPI() as api:
-        api.SetImage(image)
+    im = Image.open(image)
+
+    with PyTessBaseAPI(psm=7) as api:
+        api.SetImage(im)
         api.SetVariable('tessedit_char_whitelist', '0123456789')
 
-        return api.GetUTF8Text()
+        ocrResult = api.GetUTF8Text()
+
+        return ocrResult.strip()
 
 
