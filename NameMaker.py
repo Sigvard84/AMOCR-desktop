@@ -18,4 +18,3 @@ def addFileSize(filename, fileSizes):
     binSize = str(fileSizes["binSize"])
 
     return f'{filename}_{binSize}_{zipSize}_{pngSize}'
-

@@ -1,9 +1,14 @@
+from tkinter import TRUE
 from PIL import Image
 import math
 import FileFunctions as ff
 import subprocess as sub
 import db
 import os
+import cv2
+from cv2 import dnn_superres
+
+WINDOWS = True
 
 def makeGrayscale(im):
     
@@ -82,28 +87,63 @@ def getFormatSizes(path, fileName, isBin):
             path4Bit = path.replace("2bit", "4bit")
             fileName = fileName.replace("2bit", "4bit")
 
-            # command = ["magick", path4Bit+fileName, "-depth", depth, path+pureFileName+".png"]
-            # sub.call(command, shell = True)
+            if WINDOWS:
+                command = ["magick", path4Bit+fileName, "-depth", depth, path+pureFileName+".png"]
+                sub.call(command, shell = True)
 
-            os.system(f'convert {path4Bit+fileName} -depth {depth} {path+pureFileName}.png')
-            
-            db.bmpSizes['pngSize'] = ff.getFileSize(path, pureFileName+".png")
+            else:
+                os.system(f'convert {path4Bit+fileName} -depth {depth} {path+pureFileName}.png')
+                
+                db.bmpSizes['pngSize'] = ff.getFileSize(path, pureFileName+".png")
 
         elif depth == "1":
             path4Bit = path.replace("1bit", "4bit")
             fileName = fileName.replace("1bit", "4bit")
             
-            # command = ["magick", path4Bit+fileName, "-depth", depth, path+pureFileName+".png"]
-            # sub.call(command, shell = True)
-
-            os.system(f'convert {path4Bit+fileName} -depth {depth} {path+pureFileName}.png')
+            if WINDOWS:
             
-            db.bmpSizes['pngSize'] = ff.getFileSize(path, pureFileName+".png")
+                command = ["magick", path4Bit+fileName, "-depth", depth, path+pureFileName+".png"]
+                sub.call(command, shell = True)
+
+            else:
+                os.system(f'convert {path4Bit+fileName} -depth {depth} {path+pureFileName}.png')
+                
+                db.bmpSizes['pngSize'] = ff.getFileSize(path, pureFileName+".png")
 
         else:
-            # command = ["magick", path+fileName, "-depth", depth, path+pureFileName+".png"]
-            # sub.call(command, shell = True)
 
-            os.system(f'convert {path+fileName} -depth {depth} {path+pureFileName}.png')
+            if WINDOWS:
+                command = ["magick", path+fileName, "-depth", depth, path+pureFileName+".png"]
+                sub.call(command, shell = True)
 
-            db.bmpSizes['pngSize'] = ff.getFileSize(path, pureFileName+".png")
+            else:
+                os.system(f'convert {path+fileName} -depth {depth} {path+pureFileName}.png')
+
+                db.bmpSizes['pngSize'] = ff.getFileSize(path, pureFileName+".png")
+    
+
+def superUpscale(path, filename):
+
+    # Create an SR object
+    sr = dnn_superres.DnnSuperResImpl_create()
+
+    # Read image
+    image = cv2.imread(path+filename)
+
+    # Read the desired model
+    # modelPath = ff.getAbsPath("")+"EDSR_x4.pb"
+    modelPath = ff.getAbsPath("")+"ESPCN_x4.pb"
+    sr.readModel(modelPath)
+
+    # Set the desired model and scale to get correct pre- and post-processing
+    sr.setModel("espcn", 4)
+
+    # Upscale the image
+    result = sr.upsample(image)
+
+    newFilename = filename.replace(".png", "_superUpscale.png")
+
+    # Save the image
+    cv2.imwrite(path+newFilename, result)
+
+    return newFilename
