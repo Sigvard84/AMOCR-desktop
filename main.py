@@ -45,8 +45,6 @@ ff.makeDirectory(PATH_1BIT)
 def loopTroughInputDir(filePath, fileName, pathOutput):
 
     for i in range(0, AMMOUNT_OF_STEPS):
-        #print('loopTroughFunction -> Loop: '+str(i))
-        #print('loopTroughFunction -> Filename: '+ filePath)
 
         # the quality of the picture in pixels, 100 is orgininal quality
         qualityPercent = 100 - (i * PERCENT_TO_REDUCE)
@@ -59,11 +57,8 @@ def loopTroughInputDir(filePath, fileName, pathOutput):
 
         croppedIm = imf.cropImage(im, SQUARE)
         greyIm = imf.makeGrayscale(croppedIm)
-        invIm = imf.invertImage(greyIm)
 
-        threshIm = imf.thresholdImage(invIm)
-
-        reducedIm = imf.reduceQualityOfImage(threshIm, i*PERCENT_TO_REDUCE)
+        reducedIm = imf.reduceQualityOfImage(greyIm, i*PERCENT_TO_REDUCE)
 
         colorDepth = pathOutput[-5]+pathOutput[-4]+pathOutput[-3]+pathOutput[-2]
         newName = nm.getProcessedFileName(fileName, qualityPercent, colorDepth)
@@ -77,8 +72,6 @@ def loopTroughInputDir(filePath, fileName, pathOutput):
 
 
 def loopTroughOutputDir(path, fileName, _):
-
-    #path = path.replace("/", "\\")
 
     if not fileName.endswith(".png"):
 
@@ -107,12 +100,11 @@ def loopTroughOutputDir(path, fileName, _):
             if depth != "4":
                 if depth == "1":
                     key = pureFileName.replace("1bit", "4bit")
-                    print(f'key -> {key}')
                     pathBit4 = db.pathBit4[key]
                     oldBit4Name = db.oldBit4Name[key]
                     newBit4Name = db.newBit4Name[key]
                         
-                    ff.renameFile(pathBit4, oldBit4Name+".png", newBit4Name+'.png')
+                    ff.renameFile(pathBit4, oldBit4Name+".png", newBit4Name)
                     ff.removeFile(pathBit4, oldBit4Name+".bmp")
                     ff.removeFile(pathBit4, oldBit4Name+".bin")
 
@@ -127,6 +119,25 @@ def loopTroughOutputDir(path, fileName, _):
 
             db.binSizes = {}
             db.bmpSizes = {}
+
+def cleanUpImage(path, filename, _):
+
+    if filename.endswith(".png"):
+        # print(f'cleanUpImage -> path:\n{path}')
+        # print(f'cleanUpImage -> filename: {filename}')
+
+        im = Image.open(path+filename)
+        invIm = imf.invertImage(im)
+
+        if not "1bit" in filename:
+            finalIm = imf.thresholdImage(invIm)
+        else:
+            finalIm = invIm
+
+        name = filename.replace(".png","")
+        # print(f'cleanUpImage -> name: {name}')
+
+        imf.saveImageAsPNG(finalIm, name, path)
 
 
 def getOcrValues(path, filename, _):
@@ -148,12 +159,6 @@ def upscale(path, filename, _):
         ocrValue = tm.getImageOCR(path+suFilename)
 
         newFilename = filename.replace(".png", f'_{ocrValue}')
-
-        print(f'Path: {path}')
-        print(f'filename: {filename}')
-        print(f'suFilename: {suFilename}')
-        print(f'newFilename: {newFilename}')
-
         ff.renameFile(path, filename, newFilename+'.png')
 
         #TODO: move suFiles to separate folder once OCR reading has been done.
@@ -180,6 +185,14 @@ def runProgram():
 
     print('\nAll files renamed with filesizes.')
 
+    # Clean up images for better OCR
+    ff.loopTroughDirectory(PATH_8BIT, PATH_8BIT, cleanUpImage)
+    ff.loopTroughDirectory(PATH_4BIT, PATH_4BIT, cleanUpImage)
+    ff.loopTroughDirectory(PATH_2BIT, PATH_2BIT, cleanUpImage)
+    ff.loopTroughDirectory(PATH_1BIT, PATH_1BIT, cleanUpImage)
+
+    print('\nAll files cleaned for the OCR.')
+
     # Make the ocr reading
     ff.loopTroughDirectory(PATH_8BIT, PATH_8BIT, getOcrValues)
     ff.loopTroughDirectory(PATH_4BIT, PATH_4BIT, getOcrValues)
@@ -194,7 +207,7 @@ def runProgram():
     ff.loopTroughDirectory(PATH_2BIT, PATH_2BIT, upscale)
     ff.loopTroughDirectory(PATH_1BIT, PATH_1BIT, upscale)
 
-    print('\nAll files upscaled and read with ocr!')
+    print('\nAll files upscaled and read with OCR!')
 
     print('\nAll done!')
 
@@ -224,11 +237,20 @@ def test():
     # # Greyscale convertion and cropping
     # ff.loopTroughDirectory(PATH_INPUT_TEST, PATH_8BIT_TEST, loopTroughInputDir)
 
+    # # Make different color depth
+    # os.system('./Bitmapizer -convert')
+
     # Converting to different formats and take sizese
     ff.loopTroughDirectory(PATH_8BIT_TEST, PATH_8BIT_TEST, loopTroughOutputDir)
     ff.loopTroughDirectory(PATH_4BIT_TEST, PATH_4BIT_TEST, loopTroughOutputDir)
     ff.loopTroughDirectory(PATH_2BIT_TEST, PATH_2BIT_TEST, loopTroughOutputDir)
     ff.loopTroughDirectory(PATH_1BIT_TEST, PATH_1BIT_TEST, loopTroughOutputDir)
+
+    # Clean up images for better OCR
+    ff.loopTroughDirectory(PATH_8BIT_TEST, PATH_8BIT_TEST, cleanUpImage)
+    ff.loopTroughDirectory(PATH_4BIT_TEST, PATH_4BIT_TEST, cleanUpImage)
+    ff.loopTroughDirectory(PATH_2BIT_TEST, PATH_2BIT_TEST, cleanUpImage)
+    ff.loopTroughDirectory(PATH_1BIT_TEST, PATH_1BIT_TEST, cleanUpImage)
 
     # # Make the ocr reading
     # ff.loopTroughDirectory(PATH_8BIT_TEST, PATH_8BIT_TEST, getOcrValues)
