@@ -1,26 +1,48 @@
 from tkinter import TRUE
-from PIL import Image
+from PIL import Image, ImageChops
 import math
 import FileFunctions as ff
 import subprocess as sub
 import db
 import os
 import cv2
+import numpy as np
 from cv2 import dnn_superres
 
 WINDOWS = False
 
-def makeGrayscale(im):
-    
-    gsIm = im.convert('L')
+def convert_from_cv2_to_image(img: np.ndarray) -> Image:
+    # return Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    return Image.fromarray(img)
 
+
+def convert_from_image_to_cv2(img: Image) -> np.ndarray:
+    # return cv2.cvtColor(numpy.array(img), cv2.COLOR_RGB2BGR)
+    return np.asarray(img)
+
+
+def thresholdImage(img):
+
+    cvIm = convert_from_image_to_cv2(img)
+    threshIm = cv2.adaptiveThreshold(cvIm,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
+                cv2.THRESH_BINARY,411,110)
+
+    return convert_from_cv2_to_image(threshIm)
+
+
+
+def makeGrayscale(im):
+    gsIm = im.convert('L')
     return gsIm
 
 def cropImage(im: Image, box):
-
     cropImage = im.crop(box)
-
     return cropImage
+
+
+def invertImage(img):
+    invImg = ImageChops.invert(img)
+    return invImg
 
 
 def saveImageAsBMP(im, fileName, path):

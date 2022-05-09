@@ -4,7 +4,7 @@ import os, sys, io
 import ImgFunctions as imf
 import FileFunctions as ff
 import NameMaker as nm
-# import TesseractMachine as tm
+import TesseractMachine as tm
 import db
 
 #                       Settings for the program
@@ -59,7 +59,11 @@ def loopTroughInputDir(filePath, fileName, pathOutput):
 
         croppedIm = imf.cropImage(im, SQUARE)
         greyIm = imf.makeGrayscale(croppedIm)
-        reducedIm = imf.reduceQualityOfImage(greyIm, i*PERCENT_TO_REDUCE)
+        invIm = imf.invertImage(greyIm)
+
+        threshIm = imf.thresholdImage(invIm)
+
+        reducedIm = imf.reduceQualityOfImage(threshIm, i*PERCENT_TO_REDUCE)
 
         colorDepth = pathOutput[-5]+pathOutput[-4]+pathOutput[-3]+pathOutput[-2]
         newName = nm.getProcessedFileName(fileName, qualityPercent, colorDepth)
@@ -102,13 +106,13 @@ def loopTroughOutputDir(path, fileName, _):
 
             if depth != "4":
                 if depth == "1":
-                    key = fileName.replace("1bit", "4bit")
+                    key = pureFileName.replace("1bit", "4bit")
                     print(f'key -> {key}')
                     pathBit4 = db.pathBit4[key]
                     oldBit4Name = db.oldBit4Name[key]
                     newBit4Name = db.newBit4Name[key]
                         
-                    ff.renameFile(pathBit4, oldBit4Name+".png", newBit4Name)
+                    ff.renameFile(pathBit4, oldBit4Name+".png", newBit4Name+'.png')
                     ff.removeFile(pathBit4, oldBit4Name+".bmp")
                     ff.removeFile(pathBit4, oldBit4Name+".bin")
 
@@ -117,9 +121,9 @@ def loopTroughOutputDir(path, fileName, _):
                 ff.removeFile(path, pureFileName+".bin")
 
             else:
-                db.pathBit4[fileName] = path
-                db.oldBit4Name[fileName] = pureFileName
-                db.newBit4Name[fileName] = newName
+                db.pathBit4[pureFileName] = path
+                db.oldBit4Name[pureFileName] = pureFileName
+                db.newBit4Name[pureFileName] = newName
 
             db.binSizes = {}
             db.bmpSizes = {}
@@ -150,7 +154,7 @@ def upscale(path, filename, _):
         print(f'suFilename: {suFilename}')
         print(f'newFilename: {newFilename}')
 
-        ff.renameFile(path, filename, newFilename)
+        ff.renameFile(path, filename, newFilename+'.png')
 
         #TODO: move suFiles to separate folder once OCR reading has been done.
 
