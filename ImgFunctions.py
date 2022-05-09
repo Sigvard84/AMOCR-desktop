@@ -94,7 +94,7 @@ def getFormatSizes(path, fileName, isBin):
             else:
                 os.system(f'convert {path4Bit+fileName} -depth {depth} {path+pureFileName}.png')
                 
-                db.bmpSizes['pngSize'] = ff.getFileSize(path, pureFileName+".png")
+            db.bmpSizes['pngSize'] = ff.getFileSize(path, pureFileName+".png")
 
         elif depth == "1":
             path4Bit = path.replace("1bit", "4bit")
@@ -108,7 +108,7 @@ def getFormatSizes(path, fileName, isBin):
             else:
                 os.system(f'convert {path4Bit+fileName} -depth {depth} {path+pureFileName}.png')
                 
-                db.bmpSizes['pngSize'] = ff.getFileSize(path, pureFileName+".png")
+            db.bmpSizes['pngSize'] = ff.getFileSize(path, pureFileName+".png")
 
         else:
 
@@ -119,7 +119,7 @@ def getFormatSizes(path, fileName, isBin):
             else:
                 os.system(f'convert {path+fileName} -depth {depth} {path+pureFileName}.png')
 
-                db.bmpSizes['pngSize'] = ff.getFileSize(path, pureFileName+".png")
+            db.bmpSizes['pngSize'] = ff.getFileSize(path, pureFileName+".png")
     
 
 def superUpscale(path, filename):
@@ -131,8 +131,8 @@ def superUpscale(path, filename):
     image = cv2.imread(path+filename)
 
     # Read the desired model
-    # modelPath = ff.getAbsPath("")+"EDSR_x4.pb"
-    modelPath = ff.getAbsPath("")+"ESPCN_x4.pb"
+    # modelPath = ff.getAbsPath("")+"upscale_lib/EDSR_x4.pb"
+    modelPath = ff.getAbsPath("")+"upscale_lib/ESPCN_x4.pb"
     sr.readModel(modelPath)
 
     # Set the desired model and scale to get correct pre- and post-processing
