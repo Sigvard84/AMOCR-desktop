@@ -4,7 +4,7 @@ import os, sys, io
 import ImgFunctions as imf
 import FileFunctions as ff
 import NameMaker as nm
-# import TesseractMachine as tm
+import TesseractMachine as tm
 import db
 
 #                       Settings for the program
@@ -13,7 +13,10 @@ import db
 # The square that the program will cut out and use
 # The first two numbers represent upper left corner of the square
 # The last two numbers represent lower right corner of the square
-SQUARE = (168, 250, 713, 340)
+SQUARE = (168, 248, 717, 342)
+FIRSTDIGITS = (0, 0, 362, 94)
+LAST3RDDIGIT = (362, 0, 432, 94)
+LAST2DIGITS = (432, 0, 540, 94)
 
 # The ammount of pixels that are reduced for each step
 PERCENT_TO_REDUCE = 90
@@ -59,7 +62,30 @@ def loopTroughInputDir(filePath, fileName, pathOutput):
 
         croppedIm = imf.cropImage(im, SQUARE)
         greyIm = imf.makeGrayscale(croppedIm)
-        reducedIm = imf.reduceQualityOfImage(greyIm, i*PERCENT_TO_REDUCE)
+        leftHalf = imf.cropImage(greyIm, FIRSTDIGITS)
+        thirdLast = imf.cropImage(greyIm, LAST3RDDIGIT)
+        lastTwo = imf.cropImage(greyIm, LAST2DIGITS)
+        
+        enhThirdLast = imf.reduceBrightness(thirdLast)
+        enhThirdLast = imf.increaseContrast(enhThirdLast, 1.7)
+        enhLast = imf.increaseContrast(lastTwo, 1.5)
+
+
+        #resize, first image
+        left_size = leftHalf.size
+        middle_size = enhThirdLast.size
+        right_size = enhLast.size
+        new_image = Image.new('L',(left_size[0]+middle_size[0]+right_size[0], left_size[1]))
+        
+        new_image.paste(leftHalf,(0,0))
+        new_image.paste(enhThirdLast,(left_size[0],0))
+        new_image.paste(enhLast,(left_size[0]+middle_size[0],0))
+
+
+        #enhancedIm = imf.getContour(greyIm)
+        #enhancedIm = imf.getEdges(greyIm)
+
+        reducedIm = imf.reduceQualityOfImage(new_image, i*PERCENT_TO_REDUCE)
 
         colorDepth = pathOutput[-5]+pathOutput[-4]+pathOutput[-3]+pathOutput[-2]
         newName = nm.getProcessedFileName(fileName, qualityPercent, colorDepth)
@@ -102,13 +128,13 @@ def loopTroughOutputDir(path, fileName, _):
 
             if depth != "4":
                 if depth == "1":
-                    key = fileName.replace("1bit", "4bit")
+                    key = pureFileName.replace("1bit", "4bit")
                     print(f'key -> {key}')
                     pathBit4 = db.pathBit4[key]
                     oldBit4Name = db.oldBit4Name[key]
                     newBit4Name = db.newBit4Name[key]
                         
-                    ff.renameFile(pathBit4, oldBit4Name+".png", newBit4Name)
+                    ff.renameFile(pathBit4, oldBit4Name+".png", newBit4Name+".png")
                     ff.removeFile(pathBit4, oldBit4Name+".bmp")
                     ff.removeFile(pathBit4, oldBit4Name+".bin")
 
@@ -117,9 +143,9 @@ def loopTroughOutputDir(path, fileName, _):
                 ff.removeFile(path, pureFileName+".bin")
 
             else:
-                db.pathBit4[fileName] = path
-                db.oldBit4Name[fileName] = pureFileName
-                db.newBit4Name[fileName] = newName
+                db.pathBit4[pureFileName] = path
+                db.oldBit4Name[pureFileName] = pureFileName
+                db.newBit4Name[pureFileName] = newName
 
             db.binSizes = {}
             db.bmpSizes = {}
@@ -150,7 +176,7 @@ def upscale(path, filename, _):
         print(f'suFilename: {suFilename}')
         print(f'newFilename: {newFilename}')
 
-        ff.renameFile(path, filename, newFilename)
+        ff.renameFile(path, filename, newFilename +'.png')
 
         #TODO: move suFiles to separate folder once OCR reading has been done.
 

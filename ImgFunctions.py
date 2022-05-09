@@ -1,5 +1,5 @@
 from tkinter import TRUE
-from PIL import Image
+from PIL import Image, ImageEnhance, ImageFilter
 import math
 import FileFunctions as ff
 import subprocess as sub
@@ -8,24 +8,45 @@ import os
 import cv2
 from cv2 import dnn_superres
 
+#Import all enhancement filters from pillow
+from PIL.ImageFilter import (
+   CONTOUR, DETAIL, EDGE_ENHANCE, EDGE_ENHANCE_MORE, FIND_EDGES, SMOOTH, SMOOTH_MORE, SHARPEN
+)
+
 WINDOWS = False
 
 def makeGrayscale(im):
-    
     gsIm = im.convert('L')
-
     return gsIm
 
+
+def reduceBrightness(im):
+    darker = ImageEnhance.Brightness(im)
+    darkIm = darker.enhance(0.7)
+    return darkIm
+
+
+def increaseContrast(im, level):
+    contrastor = ImageEnhance.Contrast(im)
+    contrIm = contrastor.enhance(level)
+    return contrIm
+
 def cropImage(im: Image, box):
-
     cropImage = im.crop(box)
-
     return cropImage
+
+def getContour(im):
+    contourIm = im.filter(CONTOUR)
+    return contourIm
+
+def getEdges(im):
+    edgeIm = im.filter(FIND_EDGES)
+    return edgeIm
+
 
 
 def saveImageAsBMP(im, fileName, path):
     im.save(path+fileName+'.bmp')
-
 
 def saveImageAsPNG(im, fileName, path):
     im.save(path+fileName+'.png')
