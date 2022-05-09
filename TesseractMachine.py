@@ -5,7 +5,7 @@ def getImageOCR(image):
 
     im = Image.open(image)
 
-    with PyTessBaseAPI(psm=7) as api:
+    with PyTessBaseAPI(path='/Users/fsjolander/Public/tessdata/best', psm=7) as api:
         api.SetImage(im)
         api.SetVariable('tessedit_char_whitelist', '0123456789')
 

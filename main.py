@@ -4,7 +4,7 @@ import os, sys, io
 import ImgFunctions as imf
 import FileFunctions as ff
 import NameMaker as nm
-#import TesseractMachine as tm
+import TesseractMachine as tm
 import db
 
 #                       Settings for the program
@@ -75,52 +75,59 @@ def loopTroughInputDir(filePath, fileName, pathOutput):
 def loopTroughOutputDir(path, fileName, _):
     
     #path = path.replace("/", "\\")
+    if not fileName.endswith('.png'):
 
-    if fileName.endswith(".bin"):
-        isBin = True
-        pureFileName = fileName.replace(".bin", "")
+        if fileName.endswith(".bin"):
+            isBin = True
+            pureFileName = fileName.replace(".bin", "")
 
-        imf.getFormatSizes(path, fileName, isBin)
+            imf.getFormatSizes(path, fileName, isBin)
 
-    elif fileName.endswith(".bmp"):
-        isBin = False
-        pureFileName = fileName.replace(".bmp", "")
-        
-        imf.getFormatSizes(path, fileName, isBin)
+        elif fileName.endswith(".bmp"):
+            isBin = False
+            pureFileName = fileName.replace(".bmp", "")
+            
+            imf.getFormatSizes(path, fileName, isBin)
 
-    if len(db.binSizes) and len(db.bmpSizes):
+        if len(db.binSizes) and len(db.bmpSizes):
 
-        fileSizes = db.binSizes | db.bmpSizes
-        # print(f'fileSizes -> {fileSizes}')
+            fileSizes = db.binSizes | db.bmpSizes
+            # print(f'fileSizes -> {fileSizes}')
 
-        index = fileName.find("bit_")
-        depth = fileName[index-1]
+            index = fileName.find("bit_")
+            depth = fileName[index-1]
 
-        newName = nm.addFileSize(pureFileName, fileSizes)
-        newName += ".png"
+            print(f'Depth: {depth}')
 
-        # print(f'New name -> {newName}')
+            newName = nm.addFileSize(pureFileName, fileSizes)
+            newName += ".png"
 
-        if depth != "4":
-            if depth == "1":
+            # print(f'New name -> {newName}')
+
+            if depth != "4":
+                ff.renameFile(path, pureFileName+".png", newName)
+                ff.removeFile(path, pureFileName+".bmp")
+                ff.removeFile(path, pureFileName+".bin")
+
+                if depth == "1":
+                    imageName = fileName.split("_", 1)[0]
+                    ff.renameFile(db.pathBit4[imageName], db.oldBit4Name[imageName]+".png", db.newBit4Name[imageName])
+                    ff.removeFile(db.pathBit4[imageName], db.oldBit4Name[imageName]+".bmp")
+                    ff.removeFile(db.pathBit4[imageName], db.oldBit4Name[imageName]+".bin")
+
+            else:
                 imageName = fileName.split("_", 1)[0]
-                ff.renameFile(db.pathBit4[imageName], db.oldBit4Name[imageName]+".png", db.newBit4Name[imageName])
-                ff.removeFile(db.pathBit4[imageName], db.oldBit4Name[imageName]+".bmp")
-                ff.removeFile(db.pathBit4[imageName], db.oldBit4Name[imageName]+".bin")
+                db.pathBit4[imageName] = path
+                db.oldBit4Name[imageName] = pureFileName
+                db.newBit4Name[imageName] = newName
+
+                print(f'pathBit4: {db.pathBit4[imageName]}')
+                print(f'oldBite4Name: {db.oldBit4Name[imageName]}')
+                print(f'newBit4Name: {db.newBit4Name[imageName]}')
 
 
-            ff.renameFile(path, pureFileName+".png", newName)
-            ff.removeFile(path, pureFileName+".bmp")
-            ff.removeFile(path, pureFileName+".bin")
-        else:
-            imageName = fileName.split("_", 1)[0]
-            db.pathBit4[imageName] = path
-            db.oldBit4Name[imageName] = pureFileName
-            db.newBit4Name[imageName] = newName
-
-
-        db.binSizes = {}
-        db.bmpSizes = {}
+            db.binSizes = {}
+            db.bmpSizes = {}
 
 
 def getOcrValues(path, filename, _):
@@ -135,18 +142,22 @@ def getOcrValues(path, filename, _):
         ff.renameFile(path, filename, newFilename)
 
 
-def upsaling(path, filename, _):
+def upscale(path, filename, _):
 
     if filename.endswith('.png'):
         suFilename = imf.superUpscale(path, filename)
+        ocrValue = tm.getImageOCR(path+suFilename)
     
-    # if suFilename.endswith('.png'):
-    #     file = ff.getAbsPath(path+filename)
-    #     ocrValue = tm.getImageOCR(file)
-    
-    # newFilename = filename.replace(".png", f'_{ocrValue}')
+        newFilename = filename.replace(".png", f'_{ocrValue}')
 
-    # ff.renameFile(path, filename, filename)
+        # print(f'Path: {path}')
+        # print(f'filename: {filename}')
+        # print(f'suFilename: {suFilename}')
+        # print(f'newFilename: {newFilename}')
+
+        ff.renameFile(path, filename, newFilename)
+
+        #TODO: move suFiles to separate folder once OCR reading has been done.
 
 
 #                       Actual program
@@ -170,21 +181,21 @@ def runProgram():
 
     print('\nAll files renamed with filesizes.')
 
-    # Make the ocr reading
-    ff.loopTroughDirectory(PATH_8BIT, PATH_8BIT, getOcrValues)
-    ff.loopTroughDirectory(PATH_4BIT, PATH_4BIT, getOcrValues)
-    ff.loopTroughDirectory(PATH_2BIT, PATH_2BIT, getOcrValues)
-    ff.loopTroughDirectory(PATH_1BIT, PATH_1BIT, getOcrValues)
+    # # Make the ocr reading
+    # ff.loopTroughDirectory(PATH_8BIT, PATH_8BIT, getOcrValues)
+    # ff.loopTroughDirectory(PATH_4BIT, PATH_4BIT, getOcrValues)
+    # ff.loopTroughDirectory(PATH_2BIT, PATH_2BIT, getOcrValues)
+    # ff.loopTroughDirectory(PATH_1BIT, PATH_1BIT, getOcrValues)
 
-    print('\nAll files run through Tesseract and renamed.')
+    # print('\nAll files run through Tesseract and renamed.')
 
-    # Make the superUpscaling and ocr reading on the upscaled image
-    ff.loopTroughDirectory(PATH_8BIT, PATH_8BIT, upsaling)
-    ff.loopTroughDirectory(PATH_4BIT, PATH_4BIT, upsaling)
-    ff.loopTroughDirectory(PATH_2BIT, PATH_2BIT, upsaling)
-    ff.loopTroughDirectory(PATH_1BIT, PATH_1BIT, upsaling)
+    # # Make the superUpscaling and ocr reading on the upscaled image
+    # ff.loopTroughDirectory(PATH_8BIT, PATH_8BIT, upscale)
+    # ff.loopTroughDirectory(PATH_4BIT, PATH_4BIT, upscale)
+    # ff.loopTroughDirectory(PATH_2BIT, PATH_2BIT, upscale)
+    # ff.loopTroughDirectory(PATH_1BIT, PATH_1BIT, upscale)
 
-    print('\nAll files upscaled and read with ocr!')
+    # print('\nAll files upscaled and read with ocr!')
 
     print('\nAll done!')
 
@@ -227,10 +238,10 @@ def test():
     # ff.loopTroughDirectory(PATH_1BIT_TEST, PATH_1BIT_TEST, getOcrValues)
 
     # Make the superUpscaling and ocr reading on the upscaled image
-    ff.loopTroughDirectory(PATH_8BIT_TEST, PATH_8BIT_TEST, upsaling)
-    ff.loopTroughDirectory(PATH_4BIT_TEST, PATH_4BIT_TEST, upsaling)
-    ff.loopTroughDirectory(PATH_2BIT_TEST, PATH_2BIT_TEST, upsaling)
-    ff.loopTroughDirectory(PATH_1BIT_TEST, PATH_1BIT_TEST, upsaling)
+    ff.loopTroughDirectory(PATH_8BIT_TEST, PATH_8BIT_TEST, upscale)
+    ff.loopTroughDirectory(PATH_4BIT_TEST, PATH_4BIT_TEST, upscale)
+    ff.loopTroughDirectory(PATH_2BIT_TEST, PATH_2BIT_TEST, upscale)
+    ff.loopTroughDirectory(PATH_1BIT_TEST, PATH_1BIT_TEST, upscale)
 
-# runProgram()
-test()
+runProgram()
+#test()
