@@ -3,13 +3,13 @@ from PIL import Image, ImageChops
 import math
 import FileFunctions as ff
 import subprocess as sub
-import db
+import db as db
 import os
 import cv2
 import numpy as np
 from cv2 import dnn_superres
 
-WINDOWS = False
+WINDOWS = True
 
 def convert_from_cv2_to_image(img: np.ndarray) -> Image:
     # return Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
@@ -21,11 +21,15 @@ def convert_from_image_to_cv2(img: Image) -> np.ndarray:
     return np.asarray(img)
 
 
-def thresholdImage(img):
+def thresholdImage(img, is1bit=False):
 
+    if is1bit:
+        img = img.convert('L')
+    
     cvIm = convert_from_image_to_cv2(img)
+    
     threshIm = cv2.adaptiveThreshold(cvIm,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
-                cv2.THRESH_BINARY,411,110)
+                cv2.THRESH_BINARY,411,110) #411, 110
 
     return convert_from_cv2_to_image(threshIm)
 

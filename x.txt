@@ -1,0 +1,6 @@
+Windows:
+$env:GOOGLE_APPLICATION_CREDENTIALS="C:\Users\robin\Desktop\AMOCR-desktop\amocr-349807-fd212a62026b.json"
+
+
+Mac:
+export GOOGLE_APPLICATION_CREDENTIALS="path"
