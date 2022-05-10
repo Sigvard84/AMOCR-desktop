@@ -9,7 +9,7 @@ import cv2
 import numpy as np
 from cv2 import dnn_superres
 
-WINDOWS = True
+WINDOWS = False
 
 def convert_from_cv2_to_image(img: np.ndarray) -> Image:
     # return Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
@@ -157,12 +157,12 @@ def superUpscale(path, filename):
     image = cv2.imread(path+filename)
 
     # Read the desired model
-    # modelPath = ff.getAbsPath("")+"upscale_lib/EDSR_x4.pb"
-    modelPath = ff.getAbsPath("")+"upscale_lib/ESPCN_x4.pb"
+    #modelPath = ff.getAbsPath("")+"upscale_lib/EDSR_x4.pb"
+    modelPath = ff.getAbsPath("")+"upscale_lib/FSRCNN_x4.pb"
     sr.readModel(modelPath)
 
     # Set the desired model and scale to get correct pre- and post-processing
-    sr.setModel("espcn", 4)
+    sr.setModel("fsrcnn", 4)
 
     # Upscale the image
     result = sr.upsample(image)

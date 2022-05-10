@@ -3,4 +3,4 @@ $env:GOOGLE_APPLICATION_CREDENTIALS="C:\Users\robin\Desktop\AMOCR-desktop\amocr-
 
 
 Mac:
-export GOOGLE_APPLICATION_CREDENTIALS="path"
+export GOOGLE_APPLICATION_CREDENTIALS="/Users/fsjolander/Documents/JTH/VT_2022/Bachelor_Thesis/Applications/AMOCR-desktop/amocr-349807-fd212a62026b.json"

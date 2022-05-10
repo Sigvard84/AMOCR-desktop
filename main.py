@@ -4,9 +4,9 @@ print("Running program\n")
 
 # mf.testing()
 
-mf.test()
+#mf.test()
 
-# mf.runProgram()
+mf.runProgram()
 
 
 print("\nProgram finished")
