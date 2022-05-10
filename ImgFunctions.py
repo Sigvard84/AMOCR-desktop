@@ -1,5 +1,5 @@
 from tkinter import TRUE
-from PIL import Image, ImageChops
+from PIL import Image, ImageChops, ImageEnhance
 import math
 import FileFunctions as ff
 import subprocess as sub
@@ -8,6 +8,7 @@ import os
 import cv2
 import numpy as np
 from cv2 import dnn_superres
+from matplotlib import pyplot as plt
 
 WINDOWS = False
 
@@ -21,14 +22,45 @@ def convert_from_image_to_cv2(img: Image) -> np.ndarray:
     return np.asarray(img)
 
 
-def thresholdImage(img):
+def grabCut(orgimg):
+    imgWidth = orgimg.size[0]
+    imgHeight = orgimg.size[1]
 
+    img = convert_from_image_to_cv2(orgimg)
+    img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+
+
+    mask = np.zeros(img.shape[:2],np.uint8)
+
+    bgdModel = np.zeros((1,65),np.float64)
+    fgdModel = np.zeros((1,65),np.float64)
+
+    rect = (0,0,imgWidth,imgHeight)
+
+    cv2.grabCut(img,mask,rect,bgdModel,fgdModel,5,cv2.GC_INIT_WITH_RECT)
+    mask2 = np.where((mask==2)|(mask==0),0,1).astype('uint8')
+    img = img*mask2[:,:,np.newaxis]
+
+    return convert_from_cv2_to_image(img)
+
+
+def thresholdImage(img, is1bit=False):
+
+    if is1bit:
+        img = img.convert('L')
+    
     cvIm = convert_from_image_to_cv2(img)
+    
     threshIm = cv2.adaptiveThreshold(cvIm,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
-                cv2.THRESH_BINARY,411,110)
+                cv2.THRESH_BINARY,511,110) #411, 110
 
     return convert_from_cv2_to_image(threshIm)
 
+
+def reduceBrightness(img):
+    img = img.convert('L')
+    enhancer = ImageEnhance.Brightness(img)
+    return enhancer.enhance(0.95)
 
 
 def makeGrayscale(im):

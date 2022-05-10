@@ -132,7 +132,7 @@ def cleanUpImage(path, filename, _):
         if not "1bit" in filename:
             finalIm = imf.thresholdImage(invIm)
         else:
-            finalIm = invIm
+            finalIm = imf.thresholdImage(invIm, True)
 
         name = filename.replace(".png","")
         # print(f'cleanUpImage -> name: {name}')
