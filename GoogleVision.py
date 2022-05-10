@@ -17,7 +17,7 @@ def detect_text(path):
 
     # text_detection 
     # document_text_detection
-    if doc:
+    if document:
         response = client.document_text_detection(image=image)
     else:
         response = client.text_detection(image=image)

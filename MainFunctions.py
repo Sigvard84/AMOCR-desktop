@@ -99,6 +99,13 @@ def runProgram():
     ff.loopTroughDirectory(PATH_2BIT, PATH_2BIT, googleOCR)
     ff.loopTroughDirectory(PATH_1BIT, PATH_1BIT, googleOCR)
 
+    
+    ff.loopTroughDirectory(PATH_8BIT, PATH_8BIT, googleOcrUpscale)
+    ff.loopTroughDirectory(PATH_4BIT, PATH_4BIT, googleOcrUpscale)
+    ff.loopTroughDirectory(PATH_2BIT, PATH_2BIT, googleOcrUpscale)
+    ff.loopTroughDirectory(PATH_1BIT, PATH_1BIT, googleOcrUpscale)
+
+
     print('\nAll files run through Google Vision OCR and renamed.')
 
     print('\nAll done!')
@@ -279,29 +286,39 @@ def cleanUpImage(path, filename, _):
 
 def googleOCR(path, filename, _):
     
-    ocrValue = gv.detect_text(path+filename)
-
-    splitFileName = filename.split('_', 2)
-    fileName, facit, tail = splitFileName[0], splitFileName[1], splitFileName[2]
-
     if not "superUpscale" in filename:
-        newFilename = fileName + '_' + facit + '_' + ocrValue + '_' + tail
+        ocrValue = gv.detect_text(path+filename)
+
+        splitFileName = filename.split('_', 2)
+        imageName, facit, tail = splitFileName[0], splitFileName[1], splitFileName[2]
+
+        newFilename = imageName + '_' + facit + '_' + ocrValue + '_' + tail
         referenceFile = filename
 
         attributes = tail.split('_')
-        key = fileName+attributes[0]+attributes[1]
+        key = imageName+attributes[0]+attributes[1]
+        # print(f'INSERT KEY -> {key}')
 
         db.ogFilename[key] = newFilename
 
-    else:
+        ff.renameFile(path, referenceFile, newFilename) 
+
+def googleOcrUpscale(path, filename, _):
+    if "superUpscale" in filename:
+        ocrValue = gv.detect_text(path+filename)
+
+        splitFileName = filename.split('_', 2)
+        imageName, facit, tail = splitFileName[0], splitFileName[1], splitFileName[2]
+        
         split = filename.split("_")
         key = split[0]+split[2]+split[3]
-
+        # print(f'USE KEY -> {key}')    
+            
         referenceFile = db.ogFilename[key]
 
         newFilename = referenceFile.replace(".png", f'_{ocrValue}.png')
 
-    ff.renameFile(path, referenceFile, newFilename)
+        ff.renameFile(path, referenceFile, newFilename) 
 
 
 def getOcrValues(path, filename, _):

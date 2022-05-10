@@ -5,7 +5,7 @@ import GoogleVision as gv
 print("Running program\n")
 
 imf.WINDOWS = False
-gv.document = True
+gv.document = False
 
 # mf.testing()
 
