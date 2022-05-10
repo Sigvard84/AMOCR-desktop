@@ -3,6 +3,8 @@ import os
 # Imports the Google Cloud client library
 from google.cloud import vision
 
+document = True
+
 def detect_text(path):
     """Detects text in the file."""
 
@@ -15,7 +17,11 @@ def detect_text(path):
 
     # text_detection 
     # document_text_detection
-    response = client.text_detection(image=image)
+    if doc:
+        response = client.document_text_detection(image=image)
+    else:
+        response = client.text_detection(image=image)
+
 
     texts = response.text_annotations
 
@@ -30,9 +36,26 @@ def detect_text(path):
     #     print('bounds: {}'.format(','.join(vertices)))
 
     if not response.error.message:
-        return texts[0].description
+        try:
+            return cleanOcrValue(texts[0].description)
+        except:
+            return ""
     else:
-        raise Exception(
-            '{}\nFor more info on error messages, check: '
-            'https://cloud.google.com/apis/design/errors'.format(
-                response.error.message))
+        print(f"\nGOOGLE VISION -> ERROR: \n{response.error.message}\n")
+        return ""
+
+
+def cleanOcrValue(value):
+    value = value.replace(' ','')
+    value = value.replace('   ','')
+    value = value.replace('\n','')
+    
+    newValue = ""
+    for char in value:
+
+        if char.isdecimal():
+            newValue += char
+        else: 
+            newValue += "x"
+
+    return newValue

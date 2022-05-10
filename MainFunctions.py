@@ -1,5 +1,6 @@
 from ast import Lambda
 from operator import contains
+from tkinter import E
 from PIL import Image
 import os, sys, io
 import ImgFunctions as imf
@@ -33,7 +34,7 @@ AMMOUNT_OF_STEPS_FIRST_LEVEL = 9
 PERCENT_TO_REDUCE_SECOND_LEVEL = 1
 
 # The ammount steps with reduction that are taken
-AMMOUNT_OF_STEPS_SECOND_LEVEL = 9
+AMMOUNT_OF_STEPS_SECOND_LEVEL = 10
 
 #-------------------------------------------------------------------------
 
@@ -98,15 +99,7 @@ def runProgram():
     ff.loopTroughDirectory(PATH_2BIT, PATH_2BIT, googleOCR)
     ff.loopTroughDirectory(PATH_1BIT, PATH_1BIT, googleOCR)
 
-    # Make ocr reading for upscaled images
-    ff.loopTroughDirectory(PATH_8BIT, PATH_8BIT, ocrUpscale)
-    ff.loopTroughDirectory(PATH_4BIT, PATH_4BIT, ocrUpscale)
-    ff.loopTroughDirectory(PATH_2BIT, PATH_2BIT, ocrUpscale)
-    ff.loopTroughDirectory(PATH_1BIT, PATH_1BIT, ocrUpscale)
-
     print('\nAll files run through Google Vision OCR and renamed.')
-
-
 
     print('\nAll done!')
 #-------------------------------------------------------------------------
@@ -139,16 +132,22 @@ def test():
     # os.system('./Bitmapizer -convert')
 
     # Converting to different formats and take sizese
-    ff.loopTroughDirectory(PATH_8BIT_TEST, PATH_8BIT_TEST, loopTroughOutputDir)
-    ff.loopTroughDirectory(PATH_4BIT_TEST, PATH_4BIT_TEST, loopTroughOutputDir)
-    ff.loopTroughDirectory(PATH_2BIT_TEST, PATH_2BIT_TEST, loopTroughOutputDir)
-    ff.loopTroughDirectory(PATH_1BIT_TEST, PATH_1BIT_TEST, loopTroughOutputDir)
+    # ff.loopTroughDirectory(PATH_8BIT_TEST, PATH_8BIT_TEST, loopTroughOutputDir)
+    # ff.loopTroughDirectory(PATH_4BIT_TEST, PATH_4BIT_TEST, loopTroughOutputDir)
+    # ff.loopTroughDirectory(PATH_2BIT_TEST, PATH_2BIT_TEST, loopTroughOutputDir)
+    # ff.loopTroughDirectory(PATH_1BIT_TEST, PATH_1BIT_TEST, loopTroughOutputDir)
 
-    # Clean up images for better OCR
-    ff.loopTroughDirectory(PATH_8BIT_TEST, PATH_8BIT_TEST, cleanUpImage)
-    ff.loopTroughDirectory(PATH_4BIT_TEST, PATH_4BIT_TEST, cleanUpImage)
-    ff.loopTroughDirectory(PATH_2BIT_TEST, PATH_2BIT_TEST, cleanUpImage)
-    ff.loopTroughDirectory(PATH_1BIT_TEST, PATH_1BIT_TEST, cleanUpImage)
+    # # Make the superUpscaling and ocr reading on the upscaled image
+    # ff.loopTroughDirectory(PATH_8BIT_TEST, PATH_8BIT_TEST, upscale)
+    # ff.loopTroughDirectory(PATH_4BIT_TEST, PATH_4BIT_TEST, upscale)
+    # ff.loopTroughDirectory(PATH_2BIT_TEST, PATH_2BIT_TEST, upscale)
+    # ff.loopTroughDirectory(PATH_1BIT_TEST, PATH_1BIT_TEST, upscale)
+
+    # # Clean up images for better OCR
+    # ff.loopTroughDirectory(PATH_8BIT_TEST, PATH_8BIT_TEST, cleanUpImage)
+    # ff.loopTroughDirectory(PATH_4BIT_TEST, PATH_4BIT_TEST, cleanUpImage)
+    # ff.loopTroughDirectory(PATH_2BIT_TEST, PATH_2BIT_TEST, cleanUpImage)
+    # ff.loopTroughDirectory(PATH_1BIT_TEST, PATH_1BIT_TEST, cleanUpImage)
 
     # Make the ocr reading
     ff.loopTroughDirectory(PATH_8BIT_TEST, PATH_8BIT_TEST, googleOCR)
@@ -156,17 +155,30 @@ def test():
     ff.loopTroughDirectory(PATH_2BIT_TEST, PATH_2BIT_TEST, googleOCR)
     ff.loopTroughDirectory(PATH_1BIT_TEST, PATH_1BIT_TEST, googleOCR)
 
-    # Make the superUpscaling and ocr reading on the upscaled image
-    ff.loopTroughDirectory(PATH_8BIT_TEST, PATH_8BIT_TEST, upscale)
-    ff.loopTroughDirectory(PATH_4BIT_TEST, PATH_4BIT_TEST, upscale)
-    ff.loopTroughDirectory(PATH_2BIT_TEST, PATH_2BIT_TEST, upscale)
-    ff.loopTroughDirectory(PATH_1BIT_TEST, PATH_1BIT_TEST, upscale)
 
 
-def reduceImageSize(filePath, fileName, pathOutput, steps, reduction):
+# Function should be used with the loopTroughDirectory function in FileFunctions
+def loopTroughInputDir(filePath, fileName, pathOutput):
+
+    reduceImageSize(filePath, fileName, pathOutput, True)
+    reduceImageSize(filePath, fileName, pathOutput, False)
+
+
+def reduceImageSize(filePath, fileName, pathOutput, firstLevel):
+
+    if firstLevel:
+        steps = AMMOUNT_OF_STEPS_FIRST_LEVEL
+        reduction = PERCENT_TO_REDUCE_FIRST_LEVEL
+        startQuality = 100
+    else:
+        steps = AMMOUNT_OF_STEPS_SECOND_LEVEL
+        reduction = PERCENT_TO_REDUCE_SECOND_LEVEL
+        startQuality = 100 - (AMMOUNT_OF_STEPS_FIRST_LEVEL * PERCENT_TO_REDUCE_FIRST_LEVEL)
+
     for i in range(0, steps):
         # the quality of the picture in pixels, 100 is orgininal quality
-        qualityPercent = 100 - (i * reduction)
+        qualityPercent = startQuality - (i * reduction)
+        precentToReduce = (100 - qualityPercent)
 
         newPathOutput = pathOutput+str(qualityPercent)+'ppt/'
 
@@ -177,7 +189,13 @@ def reduceImageSize(filePath, fileName, pathOutput, steps, reduction):
         croppedIm = imf.cropImage(im, SQUARE)
         greyIm = imf.makeGrayscale(croppedIm)
 
-        reducedIm = imf.reduceQualityOfImage(greyIm, i * reduction)
+        tweakIm = imf.tweakNumber(greyIm, 6, 0.4, 3.5)
+        tweakIm = imf.tweakNumber(tweakIm, 7, 0.8, 2)
+        tweakIm = imf.tweakNumber(tweakIm, 8, 0.9, 2)
+
+        # tweakIm = imf.changeContrast(tweakIm, 2)
+
+        reducedIm = imf.reduceQualityOfImage(tweakIm, precentToReduce)
 
         colorDepth = pathOutput[-5]+pathOutput[-4]+pathOutput[-3]+pathOutput[-2]
         newName = nm.getProcessedFileName(fileName, qualityPercent, colorDepth)
@@ -187,17 +205,6 @@ def reduceImageSize(filePath, fileName, pathOutput, steps, reduction):
         ff.makeDirectory(actualFilePath)
 
         imf.saveImageAsBMP(reducedIm, newName, actualFilePath)
-
-
-# Function should be used with the loopTroughDirectory function in FileFunctions
-def loopTroughInputDir(filePath, fileName, pathOutput):
-
-    reduceImageSize(filePath, fileName, pathOutput, AMMOUNT_OF_STEPS_FIRST_LEVEL, PERCENT_TO_REDUCE_FIRST_LEVEL)
-
-
-
-
-
 
 
 def loopTroughOutputDir(path, fileName, _):
@@ -252,8 +259,6 @@ def loopTroughOutputDir(path, fileName, _):
 def cleanUpImage(path, filename, _):
 
     if filename.endswith(".png"):
-        # print(f'cleanUpImage -> path:\n{path}')
-        # print(f'cleanUpImage -> filename: {filename}')
 
         im = Image.open(path+filename)
 
@@ -268,7 +273,6 @@ def cleanUpImage(path, filename, _):
             finalIm = imf.thresholdImage(invIm, True)
 
         name = filename.replace(".png","")
-        # print(f'cleanUpImage -> name: {name}')
 
         imf.saveImageAsPNG(finalIm, name, path)
 
@@ -276,21 +280,29 @@ def cleanUpImage(path, filename, _):
 def googleOCR(path, filename, _):
     
     ocrValue = gv.detect_text(path+filename)
-    ocrValue = ocrValue.replace(' ','')
-    ocrValue = ocrValue.replace('   ','')
-    ocrValue = ocrValue.replace('\n','')
 
     splitFileName = filename.split('_', 2)
     fileName, facit, tail = splitFileName[0], splitFileName[1], splitFileName[2]
-    newFilename = fileName + '_' + facit + '_' + ocrValue + '_' + tail
-    ff.renameFile(path, filename, newFilename)
 
-    attributes = tail.split('_')
-    key = fileName+attributes[0]+attributes[1]
+    if not "superUpscale" in filename:
+        newFilename = fileName + '_' + facit + '_' + ocrValue + '_' + tail
+        referenceFile = filename
 
-    db.ogFilename[key] = newFilename
+        attributes = tail.split('_')
+        key = fileName+attributes[0]+attributes[1]
 
-    
+        db.ogFilename[key] = newFilename
+
+    else:
+        split = filename.split("_")
+        key = split[0]+split[2]+split[3]
+
+        referenceFile = db.ogFilename[key]
+
+        newFilename = referenceFile.replace(".png", f'_{ocrValue}.png')
+
+    ff.renameFile(path, referenceFile, newFilename)
+
 
 def getOcrValues(path, filename, _):
 
@@ -302,23 +314,6 @@ def getOcrValues(path, filename, _):
         # fileName, facit, tail = splitFileName[0], splitFileName[1], splitFileName[2]
         # newFilename = fileName + '_' + facit + '_' + ocrValue + '_' + tail
         # ff.renameFile(path, filename, newFilename)
-
-def ocrUpscale(path, filename, _):
-
-    if "superUpscale" in filename:
-        split = filename.split("_")
-        key = split[0]+split[3]+split[4]
-
-        ogFilename = db.ogFilename[key]
-
-        ocrValue = gv.detect_text(path+ogFilename)
-        ocrValue = ocrValue.replace(' ','')
-        ocrValue = ocrValue.replace('   ','')
-        ocrValue = ocrValue.replace('\n','')
-
-        newFilename = ogFilename.replace(".png", f'_{ocrValue}.png')
-        
-        ff.renameFile(path, filename, newFilename)
 
 
 def upscale(path, filename, _):

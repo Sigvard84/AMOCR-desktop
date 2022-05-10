@@ -8,6 +8,13 @@ import os
 import cv2
 import numpy as np
 from cv2 import dnn_superres
+from PIL import Image, ImageEnhance, ImageFilter
+
+
+#Import all enhancement filters from pillow
+from PIL.ImageFilter import (
+   CONTOUR, DETAIL, EDGE_ENHANCE, EDGE_ENHANCE_MORE, FIND_EDGES, SMOOTH, SMOOTH_MORE, SHARPEN
+)
 
 WINDOWS = False
 
@@ -32,6 +39,79 @@ def thresholdImage(img, is1bit=False):
                 cv2.THRESH_BINARY,411,110) #411, 110
 
     return convert_from_cv2_to_image(threshIm)
+
+def changeBrightness(im, level):
+    brightness = ImageEnhance.Brightness(im)
+    adjustedIm = brightness.enhance(level)
+    return adjustedIm
+
+
+def changeContrast(im, level):
+    contrastor = ImageEnhance.Contrast(im)
+    adjustedIm = contrastor.enhance(level)
+    return adjustedIm
+
+
+def tweakNumber(im, position, brightness, contrast):
+
+    if position == 8:
+        return adjust8Position(im, brightness, contrast) 
+    
+    elif position == 7:
+        firstPoints = (0, 0, 425, 90)
+        middelPoint = (425, 0, 495, 90)
+        lastPoints =  (495, 0, 545, 90)
+        return adjustImgNumber(im, brightness, contrast, firstPoints, middelPoint, lastPoints)
+    
+    elif position == 6:
+        firstPoints = (0, 0, 350, 90)
+        middelPoint = (350, 0, 425, 90)
+        lastPoints =  (425, 0, 545, 90)
+        return adjustImgNumber(im, brightness, contrast, firstPoints, middelPoint, lastPoints)
+
+
+def adjustImgNumber(im, brightness, contrast, firstPoints, middelPoint, lastPoints):
+
+    left = cropImage(im, firstPoints)
+    middel = cropImage(im, middelPoint)
+    right = cropImage(im, lastPoints)
+    
+    middel = changeBrightness(middel, brightness)
+    middel = changeContrast(middel, contrast)
+
+    #resize, first image
+    left_size = left.size
+    middle_size = middel.size
+    right_size = right.size
+    new_image = Image.new('L',(left_size[0]+middle_size[0]+right_size[0], left_size[1]))
+    
+    new_image.paste(left,(0,0))
+    new_image.paste(middel,(left_size[0],0))
+    new_image.paste(right,(left_size[0]+middle_size[0],0))
+
+    return new_image
+    
+
+def adjust8Position(im, brightness, contrast):
+    firstDigitsPoints = (0, 0, 500, 90)
+    lastDigitPoints = (500, 0, 545, 90)
+
+    firstDigits = cropImage(im, firstDigitsPoints)
+    lastDigit = cropImage(im, lastDigitPoints)
+    
+    enhLastDigit = changeBrightness(lastDigit, brightness)
+    enhLastDigit = changeContrast(enhLastDigit, contrast)
+
+    #resize, first image
+    left_size = firstDigits.size
+    right_size = enhLastDigit.size
+    new_image = Image.new('L',(left_size[0]+right_size[0], left_size[1]))
+    
+    new_image.paste(firstDigits,(0,0))
+    new_image.paste(enhLastDigit,(left_size[0],0))
+
+    return new_image
+
 
 
 
@@ -66,9 +146,8 @@ def reduceQualityOfImage(im, reducePercentage):
         width = im.size[0]
         height = im.size[1]
 
-        #The real percent, in decimal form, to reduce width and height with to get the proper percent reduction
+        # The real percent, in decimal form, to reduce width and height with to get the proper percent reduction
         realPercent = math.sqrt(1 - (reducePercentage / 100))
-        # print('reduceQualityOfImage - >Real precentage to reduce: '+str(realPercent))
 
         newWidth = int(round(width * realPercent))
         newHeight = int(round(height * realPercent))
